@@ -1,0 +1,141 @@
+
+    body{
+        background-color: #bddeef;
+    }
+
+    .exhibit-box{
+        width: 500px;
+        height: 180px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .triangle-1 {
+        z-index: 1;
+        position: absolute;
+        width: 500px;
+        height: 180px; /*or whatever the height of the card is -10*/
+        background: #2f2f2f;
+
+        /* Right triangle with 90° in bottom-left corner */
+        clip-path: (
+            100% 0,
+            0 100%,
+            100% 100%
+        );      
+    }
+
+    .triangle-2 {
+        z-index: 1;
+        position: absolute;
+        width: 500px;
+        height: 180px; /*or whatever the height of the card is -10*/
+        background: white;
+
+        /* Right triangle with 90° in bottom-left corner */
+        clip-path: polygon(
+        0 0,
+        100% 0,
+        0 100%
+        );    
+    }
+
+    .card-content{
+        position: relative; 
+        width: 495px;
+        height: 177px; /*or whatever the height of the card is"*/
+        background-color: #d1d3d4;
+        z-index: 1000;
+        justify-self: center;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        font-family: "argent-pixel-cf", sans-serif;
+    }
+
+    .card-top{
+        margin-top: 2%;
+        width: 96%;
+        height: 33px;
+        background-color: #56a646;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .org-title{
+        font-family: "argent-pixel-cf", sans-serif;
+        font-size: 21px;
+        color: white;
+        margin-left: 10px;
+    }
+
+    .location{
+        height: 25px;
+        width: 135px;
+        background-color: #d1d3d4;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin-right: 4px;
+    }
+
+    .triangle-3 {
+        z-index: 1;
+        position: absolute;
+        width: 135px;
+        height: 25px; /*or whatever the height of the card is -10*/
+        background: #2f2f2f;
+
+        /* Right triangle with 90° in bottom-left corner */
+        clip-path: polygon(
+            100% 0,
+            0 100%,
+            100% 100%
+        );      
+    }
+
+    .triangle-4 {
+        z-index: 1;
+        position: absolute;
+        width: 135px;
+        height: 25px; /*or whatever the height of the card is -10*/
+        background: white;
+
+        /* Right triangle with 90° in bottom-left corner */
+        clip-path: polygon(
+        0 0,
+        100% 0,
+        0 100%
+        );    
+    }
+
+    .location-content{
+        position: absolute;
+        width: 132px;
+        height: 23px;
+        background-color: #d1d3d4;
+        z-index: 1000;
+    }
+    .location-text{
+        font-size: 14px;
+        font-family: "argent-pixel-cf", sans-serif;
+    }
+
+    .exhibit-title{
+        width: 100%;
+        font-size: 18px;
+        font-family: "argent-pixel-cf", sans-serif;
+        font-style: italic;
+        font-weight: 600;
+        background-color: red;
+        text-align: left;
+    }
+
+    .exhibit-info{
+        width: 100%;
+        font-size: 14px;
+        font-family: "argent-pixel-cf", sans-serif;
+    }
+

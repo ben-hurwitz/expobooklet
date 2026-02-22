@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>EXPO 2026 — Exhibit Booklet</title>
+
+  <!-- Google Fonts -->
+  <link rel="stylesheet" href="https://use.typekit.net/guq0fud.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,100..900;1,9..144,100..900&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Mona+Sans:ital,wdth,wght@0,125,200..900;1,125,200..900&family=Piazzolla:ital,opsz,wght@0,8..30,100..900;1,8..30,100..900&display=swap" rel="stylesheet">
+
+  <!-- PapaParse for CSV fetching -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+
+  <!-- Paged.js — handles all pagination, page breaks, @page rules -->
+  <!-- Loaded AFTER content is injected by JS (see bottom of body) -->
+
+  <style>
+    /* ============================================================
+       CSS VARIABLES
+    ============================================================ */
+    :root {
+      --card-bg:      #d1d3d4;
+      --green:        #56a646;
+      --dark:         #2f2f2f;
+      --white:        #ffffff;
+      --gap:          15pt;
+    }
+
+    /* ============================================================
+       PAGE DEFINITION — Paged.js reads this
+    ============================================================ */
+    @page {
+      size: letter portrait;   /* 8.5in × 11in */
+      margin: .8in;
+    }
+
+    /* ============================================================
+       RESET & BASE
+    ============================================================ */
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0; padding: 0;
+      -webkit-print-color-adjust: exact !important;
+              print-color-adjust: exact !important;
+    }
+
+    body {
+      font-family: 'Poppins', sans-serif;
+      font-size: 11pt;
+      background: #bddeef;
+    }
+
+    /* ============================================================
+       SCREEN-ONLY UI (hidden when Paged.js renders / on print)
+    ============================================================ */
+    #controls {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 9999;
+      background: var(--dark);
+      color: white;
+      padding: 10px 20px;
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      font-family: 'Poppins', sans-serif;
+      font-size: 13px;
+    }
+
+    #controls button {
+      background: var(--green);
+      color: white;
+      border: none;
+      padding: 7px 18px;
+      font-family: 'Poppins', sans-serif;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      letter-spacing: 0.03em;
+    }
+    #controls button:hover { background: #448a35; }
+    #controls button:disabled { opacity: 0.5; cursor: default; }
+
+    #status { font-style: italic; opacity: 0.8; }
+
+    /* Space below fixed bar */
+    #spacer { height: 44px; }
+
+    /* Loading message */
+    #loading {
+      padding: 60px;
+      text-align: center;
+      font-size: 16pt;
+      color: var(--dark);
+      font-family: 'Poppins', sans-serif;
+    }
+
+    /* ============================================================
+       CONTENT AREA — this is what Paged.js paginates
+    ============================================================ */
+    #content {
+      /* Paged.js takes control of this once renderBook() is called */
+    }
+
+    /* ============================================================
+       SECTION HEADER  (location group label)
+    ============================================================ */
+    .section-header {
+      background: var(--dark) !important;
+      color: var(--white) !important;
+      font-family: 'Poppins', sans-serif;
+      font-size: 9pt;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 5pt 8pt;
+      margin-bottom: var(--gap);
+      margin-top: 4pt;
+      /* Keep header glued to the first card below it */
+      break-after: avoid;
+      page-break-after: avoid;
+    }
+
+    /* ============================================================
+       EXHIBIT CARD
+    ============================================================ */
+    .exhibit-box {
+      position: relative;
+      width: 100%;
+      margin-bottom: var(--gap);
+      /* Never split a card across two pages */
+      break-inside: avoid;
+      page-break-inside: avoid;
+      align-items: center;
+    }
+
+    /* Corner triangle pair — decorative */
+    .tri {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      height: calc(100% + 4px);
+      transform: translateY(-2px);
+    }
+    .tri-dark {
+      background: var(--dark) !important;
+      clip-path: polygon(100% 0, 0 100%, 100% 100%);
+    }
+    .tri-white {
+      background: var(--white) !important;
+      clip-path: polygon(0 0, 100% 0, 0 100%);
+    }
+
+    .card-content {
+      position: relative;
+      z-index: 2;
+      background: var(--card-bg);
+      width: calc(100% - 4px);
+      display: flex;
+      flex-direction: column;
+      justify-self: center;
+    }
+
+    /* ── Top bar ── */
+    .card-top {
+      background: var(--green);
+      display: flex;
+      margin-top: 4px;
+      width: calc(100% - 8px);
+      align-items: stretch;
+      justify-content: space-between;
+      min-height: 22pt;
+      margin-left: 4px;
+    }
+
+    .org-title {
+      font-family: "argent-pixel-cf", sans-serif;
+      font-size: 12.5pt;
+      font-weight: 700;
+      color: var(--white) !important;
+      padding: 4pt 6pt;
+      align-self: center;
+      flex: 1;
+      line-height: 1.2;
+    }
+    .location {
+      height: 25px;
+      margin-right: 4px;
+      margin-top: 4px;
+      margin-bottom: 4px;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .loc-tri {
+      position: absolute;
+      inset: 0;
+    }
+    .loc-tri-dark {
+      background: var(--dark) !important;
+      clip-path: polygon(100% 0, 0 100%, 100% 100%);
+    }
+    .loc-tri-white {
+      background: var(--white) !important;
+      clip-path: polygon(0 0, 100% 0, 0 100%);
+    }
+    .location-inner {
+      position: relative;
+      z-index: 2;
+      background: var(--card-bg) !important;
+      margin: 2px;
+      width: calc(100% - 2px);
+      height: calc(100% - 2px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0 6pt;
+    }
+    .location-icon{
+      width: 10px;
+      height: 15px;
+      background-image: url('expobookletlocationicon@4x.png');
+      background-position: center;
+      background-repeat: no-repeat;
+      background-size: contain;
+      margin-right: 5px;
+    }
+
+    .warn-icon{
+      width: 17px;
+      height: 17px;
+      background-image: url('expobookletwarnicon@4x.png');
+      background-position: center;
+      background-repeat: no-repeat;
+      background-size: contain;
+      margin-right: 5px;
+    }
+
+    .award-icon{
+      width: 17px;
+      height: 17px;
+      background-image: url('expobookletawardicon@4x.png');
+      background-position: center;
+      background-repeat: no-repeat;
+      background-size: contain;
+      margin-right: 5px;
+    }
+
+    .location-text {
+      font-family: "argent-pixel-cf", sans-serif;
+      font-weight: 600;
+      font-size: 9pt;
+      color: var(--dark);
+      white-space: nowrap;
+    }
+
+    /* ── Body ── */
+    .exhibit-title {
+      font-family: "argent-pixel-cf", sans-serif;
+      font-style: italic;
+      font-weight: 900;
+      font-size: 14pt;
+      color: var(--dark);
+      padding: 8pt 8pt 10pt;
+      line-height: 1.25;
+    }
+
+    .exhibit-info {
+      font-family: "argent-pixel-cf", sans-serif;
+      font-size: 15px;
+      color: #333;
+      padding: 0 8pt 10pt;
+      line-height: 1.4;
+    }
+    .exhibit-info.missing { color: #c0392b; font-style: italic; }
+
+    /* ── Bottom strip ── */
+    .card-bottom {
+      display: flex;
+      gap: 10pt;
+      padding: 0pt 10pt 4pt;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .day-warning {
+      font-size: 7.5pt;
+      font-weight: 700;
+      color: #c0392b !important;
+      font-family: 'Poppins', sans-serif;
+    }
+    .day-warning::before { content: "⚠ "; }
+
+    .award {
+      font-size: 7.5pt;
+      font-weight: 700;
+      color: #8a6200 !important;
+      font-family: 'Poppins', sans-serif;
+    }
+    .award::before { content: "★ "; }
+
+    /* ============================================================
+       PRINT — hide screen controls, Paged.js handles the rest
+    ============================================================ */
+    @media print {
+      #controls, #spacer { display: none !important; }
+      body { background: white !important; }
+      /* Force background image to print on every page */
+      .pagedjs_page {
+        -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+      }
+    }
+
+    /* ============================================================
+       PAGED.JS — background image on every page
+    ============================================================ */
+    .pagedjs_page {
+      background-image: url('bookletbg.png') !important;
+      background-size: 8.5in 11in !important;
+      background-repeat: no-repeat !important;
+      background-position: top left !important;
+    }
+  </style>
+</head>
+ <!-- Screen-only toolbar -->
+ <div id="controls">
+  <button id="btn-refresh" onclick="loadData()">↻ Refresh Data</button>
+  <button id="btn-print" onclick="window.print()" disabled>🖨 Print / Save PDF</button>
+  <span id="status">Loading data…</span>
+</div>
+<div id="spacer"></div>
+<body>
+
+ 
+
+  <!-- Paged.js renders this -->
+  <div id="content">
+    <div id="loading">Fetching exhibit data from Google Sheets…</div>
+  </div>
+
+  <script>
+  /* ============================================================
+     CONFIG
+  ============================================================ */
+  const ROOM_URL =
+    "https://docs.google.com/spreadsheets/d/e/2PACX-1vSDlLjeyltUyzjL9YQUPUvPWXzpYcTDPk1njM7NFXSg1fRES0dclZdVb-hdj-_X9RxJDc7_PYB8obYc/pub?gid=920592641&single=true&output=csv";
+
+  const EXHIBIT_URL =
+    "https://docs.google.com/spreadsheets/d/e/" +
+    "2PACX-1vTlzXK2SdVT1gPIO5pPNaGx1T9uAoCsXKszEin1ZrmS7w2NmcxXbKgAynkYEvrPy15Gol7xwfKcWyrl" +
+    "/pub?output=csv";
+
+  const LOCATION_ORDER = [
+    "E-Hall | Lobby", "E-Hall | Floor 1", "E-Hall | Floor 2",
+    "ME | Lobby", "ME | Floor 1", "ME | Floor 2", "ECB | Atrium",
+  ];
+  const EXCLUDE_KW = ["lunch","sponsor","speakers","storage","changing room","activities"];
+
+  /* ============================================================
+     DATA HELPERS
+  ============================================================ */
+  function makeLocation(building, room) {
+    building = (building||"").trim(); room = (room||"").trim();
+    if (/lobby/i.test(room))  return building + " | Lobby";
+    if (/atrium/i.test(room)) return building + " | Atrium";
+    const m = room.match(/^(.*?)\s*Table\s*[\d\-]+/i);
+    if (m) { const a = m[1].trim().replace(/^[\s|,]+|[\s|,]+$/g,""); return building + " | " + (a||"Lobby"); }
+    if (room.startsWith("1")) return building + " | Floor 1";
+    if (room.startsWith("2")) return building + " | Floor 2";
+    return building + " | " + room;
+  }
+
+  function makeDayWarning(fri, sat) {
+    const p = v => ["true","1","yes"].includes(String(v).trim().toLowerCase());
+    if (p(fri) && !p(sat)) return "Friday Only";
+    if (p(sat) && !p(fri)) return "Saturday Only";
+    return "";
+  }
+
+  function makeAward(award) {
+    const p = v => ["true","1","yes"].includes(String(v).trim().toLowerCase());
+    if (p(award)) return "2025 Award-Winning Exhibit";
+    return "";
+  }
+
+  function exclude(org, title) {
+    if (!org || org.trim()==="" || org.toLowerCase()==="nan") return true;
+    if (EXCLUDE_KW.some(k => org.toLowerCase().includes(k))) return true;
+    if (title && /SPONSOR/i.test(title)) return true;
+    return false;
+  }
+
+  function fetchCSV(url) {
+    return new Promise((res, rej) => Papa.parse(url, {
+      download: true, header: true, skipEmptyLines: true,
+      complete: r => res(r.data), error: e => rej(e),
+    }));
+  }
+
+  function esc(s) {
+    return String(s||"")
+      .replace(/&/g,"&amp;").replace(/</g,"&lt;")
+      .replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+  }
+
+  /* ============================================================
+     RENDER HTML
+  ============================================================ */
+  function buildHTML(rows) {
+    let html = "";
+    let lastLoc = null;
+
+    rows.forEach(r => {
+      if (r.loc !== lastLoc) {
+        /*
+        html += `<div class="section-header">${esc(r.loc)}</div>`;*/
+        lastLoc = r.loc;
+      }
+
+      const bottom = (r.warn || r.award) ? `
+        <div class="card-bottom">
+          ${r.warn  ? `<div class="location">
+                <div class="loc-tri loc-tri-dark"></div>
+                <div class="loc-tri loc-tri-white"></div>
+                <div class="location-inner">
+                  <div class="warn-icon"></div>
+                  <div class="location-text">${esc(r.warn)}</div>
+                </div>
+              </div>` : ""}
+          ${r.award ? `<div class="location">
+                <div class="loc-tri loc-tri-dark"></div>
+                <div class="loc-tri loc-tri-white"></div>
+                <div class="location-inner">
+                  <div class="award-icon"></div>
+                  <div class="location-text">${esc(r.award)}</div>
+                </div>
+              </div>` : ""}
+        </div>` : "";
+
+      const descClass = r.desc.includes("attention needed") ? "exhibit-info missing" : "exhibit-info";
+
+      html += `
+        <div class="exhibit-box">
+          <div class="tri tri-dark"></div>
+          <div class="tri tri-white"></div>
+          <div class="card-content">
+            <div class="card-top">
+              <div class="org-title">${esc(r.org)}</div>
+              <div class="location">
+                <div class="loc-tri loc-tri-dark"></div>
+                <div class="loc-tri loc-tri-white"></div>
+                <div class="location-inner">
+                  <div class="location-icon"></div>
+                  <div class="location-text">${esc(r.loc)}</div>
+                </div>
+              </div>
+            </div>
+            <h2 class="exhibit-title">${esc(r.title)}</h2>
+            <p class="${descClass}">${esc(r.desc)}</p>
+            ${bottom}
+          </div>
+        </div>`;
+    });
+
+    return html;
+  }
+
+  /* ============================================================
+     LOAD DATA + TRIGGER PAGED.JS
+  ============================================================ */
+  let pagedLoaded = false;
+
+  async function loadData() {
+    setStatus("Fetching data…");
+    document.getElementById("btn-refresh").disabled = true;
+    document.getElementById("btn-print").disabled   = true;
+    document.getElementById("content").innerHTML = '<div id="loading">Fetching exhibit data…</div>';
+
+    // Remove any previous Paged.js render artifacts
+    document.querySelectorAll(".pagedjs_page_content, .pagedjs_pages").forEach(el => el.remove());
+
+    try {
+      const [roomsRaw, exhibitsRaw] = await Promise.all([fetchCSV(ROOM_URL), fetchCSV(EXHIBIT_URL)]);
+
+      // Build description lookup
+      const dKey = Object.keys(exhibitsRaw[0]||{}).find(k => k.includes("Exhibit Title"));
+      const dVal = Object.keys(exhibitsRaw[0]||{}).find(k => k.includes("Exhibit Description"));
+      const descMap = {};
+      exhibitsRaw.forEach(r => { if (dKey && r[dKey]) descMap[r[dKey].trim()] = (r[dVal]||"").trim(); });
+
+      const awardCol = roomsRaw[0]
+        ? ("Award" in roomsRaw[0] ? "Award" : Object.keys(roomsRaw[0]).find(k=>k.includes("Award Recipient"))||"Award")
+        : "Award";
+
+      let rows = roomsRaw.map(r => ({
+        title: (r["Exhibit Title"]||"").trim(),
+        org:   (r["Organization"]||"").trim(),
+        loc:   makeLocation(r["Building"], r["Room #"]),
+        warn:  makeDayWarning(r["Friday"], r["Saturday"]),
+        award: makeAward(r[awardCol]),
+        desc:  descMap[(r["Exhibit Title"]||"").trim()] || "No exhibit description — attention needed",
+      }));
+
+      rows = rows.filter(r => !exclude(r.org, r.title));
+      rows.sort((a,b) => {
+        const ai = LOCATION_ORDER.indexOf(a.loc), bi = LOCATION_ORDER.indexOf(b.loc);
+        return (ai===-1?99:ai) - (bi===-1?99:bi);
+      });
+
+      document.getElementById("content").innerHTML = buildHTML(rows);
+      setStatus(`✓ ${rows.length} exhibits loaded — rendering pages…`);
+
+      // Trigger Paged.js (load it once, then re-preview on refresh)
+      await runPagedJS();
+
+      setStatus(`✓ ${rows.length} exhibits · ${document.querySelectorAll(".pagedjs_page").length} pages · Click 🖨 to export PDF`);
+      document.getElementById("btn-print").disabled = false;
+
+    } catch(err) {
+      console.error(err);
+      document.getElementById("content").innerHTML = `<div id="loading" style="color:red">Error: ${err.message}</div>`;
+      setStatus("❌ Failed to load data");
+    }
+    document.getElementById("btn-refresh").disabled = false;
+  }
+
+  function runPagedJS() {
+    return new Promise((resolve) => {
+      if (!pagedLoaded) {
+        // Load Paged.js for the first time
+        const script = document.createElement("script");
+        script.src = "https://unpkg.com/pagedjs/dist/paged.polyfill.js";
+        script.onload = () => {
+          pagedLoaded = true;
+          // Paged.js auto-runs on load; wait for it to finish
+          window.PagedPolyfill.on("rendered", resolve);
+        };
+        document.head.appendChild(script);
+      } else {
+        // Re-render with existing Paged.js
+        window.PagedPolyfill.preview().then(resolve);
+      }
+    });
+  }
+
+  function setStatus(msg) { document.getElementById("status").textContent = msg; }
+
+  /* ============================================================
+     INIT
+  ============================================================ */
+  loadData();
+  </script>
+</body>
+</html>
