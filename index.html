@@ -14,9 +14,6 @@
   <!-- PapaParse for CSV fetching -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
 
-  <!-- Paged.js — handles all pagination, page breaks, @page rules -->
-  <!-- Loaded AFTER content is injected by JS (see bottom of body) -->
-
   <style>
     /* ============================================================
        CSS VARIABLES
@@ -30,11 +27,19 @@
     }
 
     /* ============================================================
-       PAGE DEFINITION — Paged.js reads this
+       PAGE DEFINITIONS — Paged.js reads these
     ============================================================ */
+
+    /* Default page (all content pages) */
     @page {
-      size: letter portrait;   /* 8.5in × 11in */
+      size: letter portrait;
       margin: .8in;
+    }
+
+    /* Cover page — zero margins so the image fills edge-to-edge */
+    @page cover {
+      size: letter portrait;
+      margin: 0;
     }
 
     /* ============================================================
@@ -54,7 +59,7 @@
     }
 
     /* ============================================================
-       SCREEN-ONLY UI (hidden when Paged.js renders / on print)
+       SCREEN-ONLY UI
     ============================================================ */
     #controls {
       position: fixed;
@@ -86,10 +91,8 @@
 
     #status { font-style: italic; opacity: 0.8; }
 
-    /* Space below fixed bar */
     #spacer { height: 44px; }
 
-    /* Loading message */
     #loading {
       padding: 60px;
       text-align: center;
@@ -99,14 +102,57 @@
     }
 
     /* ============================================================
-       CONTENT AREA — this is what Paged.js paginates
+       COVER PAGE
+       - Uses named @page cover (zero margins)
+       - The image should be exported from Illustrator at 8.5×11in
+       - Replace 'your-cover.png' with your actual filename
     ============================================================ */
-    #content {
-      /* Paged.js takes control of this once renderBook() is called */
+    #cover-page {
+      /* Assign this element to the zero-margin named page */
+      page: cover;
+
+      /* Fill the full letter sheet */
+      width: 8.5in;
+      height: 11in;
+
+      /* Your Illustrator cover image */
+      background-image: url('bookcover_1@4x.png');
+      background-size: 8.5in 11in;
+      background-repeat: no-repeat;
+      background-position: top left;
+
+      /* Force a page break after so exhibits start on page 2 */
+      break-after: always;
+      page-break-after: always;
+
+      -webkit-print-color-adjust: exact !important;
+              print-color-adjust: exact !important;
+    }
+
+    #welcome-page {
+      /* Assign this element to the zero-margin named page */
+      page: cover;
+
+      /* Fill the full letter sheet */
+      width: 8.5in;
+      height: 11in;
+
+      /* Your Illustrator cover image */
+      background-image: url('welcomepage_2@4x.png');
+      background-size: 8.5in 11in;
+      background-repeat: no-repeat;
+      background-position: top left;
+
+      /* Force a page break after so exhibits start on page 2 */
+      break-after: always;
+      page-break-after: always;
+
+      -webkit-print-color-adjust: exact !important;
+              print-color-adjust: exact !important;
     }
 
     /* ============================================================
-       SECTION HEADER  (location group label)
+       SECTION HEADER
     ============================================================ */
     .section-header {
       background: var(--dark) !important;
@@ -119,7 +165,6 @@
       padding: 5pt 8pt;
       margin-bottom: var(--gap);
       margin-top: 4pt;
-      /* Keep header glued to the first card below it */
       break-after: avoid;
       page-break-after: avoid;
     }
@@ -131,19 +176,17 @@
       position: relative;
       width: 100%;
       margin-bottom: var(--gap);
-      /* Never split a card across two pages */
       break-inside: avoid;
       page-break-inside: avoid;
       align-items: center;
     }
 
-    /* Corner triangle pair — decorative */
     .tri {
       position: absolute;
       inset: 0;
       pointer-events: none;
-      height: calc(100% + 4px);
-      transform: translateY(-2px);
+      height: calc(100% + 10px);
+      transform: translateY(-5px);
     }
     .tri-dark {
       background: var(--dark) !important;
@@ -158,7 +201,7 @@
       position: relative;
       z-index: 2;
       background: var(--card-bg);
-      width: calc(100% - 4px);
+      width: calc(100% - 10px);
       display: flex;
       flex-direction: column;
       justify-self: center;
@@ -221,7 +264,7 @@
       justify-content: center;
       padding: 0 6pt;
     }
-    .location-icon{
+    .location-icon {
       width: 10px;
       height: 15px;
       background-image: url('expobookletlocationicon@4x.png');
@@ -230,8 +273,7 @@
       background-size: contain;
       margin-right: 5px;
     }
-
-    .warn-icon{
+    .warn-icon {
       width: 17px;
       height: 17px;
       background-image: url('expobookletwarnicon@4x.png');
@@ -240,8 +282,7 @@
       background-size: contain;
       margin-right: 5px;
     }
-
-    .award-icon{
+    .award-icon {
       width: 17px;
       height: 17px;
       background-image: url('expobookletawardicon@4x.png');
@@ -250,7 +291,6 @@
       background-size: contain;
       margin-right: 5px;
     }
-
     .location-text {
       font-family: "argent-pixel-cf", sans-serif;
       font-weight: 600;
@@ -269,7 +309,6 @@
       padding: 8pt 8pt 10pt;
       line-height: 1.25;
     }
-
     .exhibit-info {
       font-family: "argent-pixel-cf", sans-serif;
       font-size: 15px;
@@ -305,12 +344,11 @@
     .award::before { content: "★ "; }
 
     /* ============================================================
-       PRINT — hide screen controls, Paged.js handles the rest
+       PRINT
     ============================================================ */
     @media print {
       #controls, #spacer { display: none !important; }
       body { background: white !important; }
-      /* Force background image to print on every page */
       .pagedjs_page {
         -webkit-print-color-adjust: exact !important;
                 print-color-adjust: exact !important;
@@ -318,29 +356,38 @@
     }
 
     /* ============================================================
-       PAGED.JS — background image on every page
+       PAGED.JS — background on content pages
+       (cover page uses its own named @page with no background)
     ============================================================ */
     .pagedjs_page {
-      background-image: url('bookletbg.png') !important;
+      background-image: url('bookletbg2@4x.png') !important;
       background-size: 8.5in 11in !important;
       background-repeat: no-repeat !important;
       background-position: top left !important;
     }
+
+    /* The very first page is the cover — no background image needed
+       since the cover div's own background fills it */
+    .pagedjs_page:first-of-type {
+      background-image: none !important;
+    }
   </style>
 </head>
- <!-- Screen-only toolbar -->
- <div id="controls">
-  <button id="btn-refresh" onclick="loadData()">↻ Refresh Data</button>
-  <button id="btn-print" onclick="window.print()" disabled>🖨 Print / Save PDF</button>
-  <span id="status">Loading data…</span>
-</div>
-<div id="spacer"></div>
+
 <body>
-
- 
-
-  <!-- Paged.js renders this -->
+  <div id="cover-page"></div>
+  <div id="welcome-page"></div>
+  <div id="controls">
+    <button id="btn-refresh" onclick="loadData()">↻ Refresh Data</button>
+    <button id="btn-print" onclick="window.print()" disabled>🖨 Print / Save PDF</button>
+    <span id="status">Loading data…</span>
+  </div>
+  <div id="spacer"></div>
+  
   <div id="content">
+    
+
+    <!-- Exhibit cards are injected here by JS -->
     <div id="loading">Fetching exhibit data from Google Sheets…</div>
   </div>
 
@@ -478,7 +525,13 @@
     setStatus("Fetching data…");
     document.getElementById("btn-refresh").disabled = true;
     document.getElementById("btn-print").disabled   = true;
-    document.getElementById("content").innerHTML = '<div id="loading">Fetching exhibit data…</div>';
+
+    // Clear only the exhibit cards, NOT the cover page div
+    const loading = document.getElementById("loading");
+    if (loading) loading.remove();
+
+    // Remove old exhibit cards if refreshing
+    document.querySelectorAll(".exhibit-box, .section-header").forEach(el => el.remove());
 
     // Remove any previous Paged.js render artifacts
     document.querySelectorAll(".pagedjs_page_content, .pagedjs_pages").forEach(el => el.remove());
@@ -511,10 +564,11 @@
         return (ai===-1?99:ai) - (bi===-1?99:bi);
       });
 
-      document.getElementById("content").innerHTML = buildHTML(rows);
+      // Inject exhibit cards after the cover page
+      document.getElementById("content").insertAdjacentHTML("beforeend", buildHTML(rows));
+
       setStatus(`✓ ${rows.length} exhibits loaded — rendering pages…`);
 
-      // Trigger Paged.js (load it once, then re-preview on refresh)
       await runPagedJS();
 
       setStatus(`✓ ${rows.length} exhibits · ${document.querySelectorAll(".pagedjs_page").length} pages · Click 🖨 to export PDF`);
@@ -522,7 +576,8 @@
 
     } catch(err) {
       console.error(err);
-      document.getElementById("content").innerHTML = `<div id="loading" style="color:red">Error: ${err.message}</div>`;
+      document.getElementById("content").insertAdjacentHTML("beforeend",
+        `<div id="loading" style="color:red;padding:60px;text-align:center">Error: ${err.message}</div>`);
       setStatus("❌ Failed to load data");
     }
     document.getElementById("btn-refresh").disabled = false;
@@ -531,17 +586,14 @@
   function runPagedJS() {
     return new Promise((resolve) => {
       if (!pagedLoaded) {
-        // Load Paged.js for the first time
         const script = document.createElement("script");
         script.src = "https://unpkg.com/pagedjs/dist/paged.polyfill.js";
         script.onload = () => {
           pagedLoaded = true;
-          // Paged.js auto-runs on load; wait for it to finish
           window.PagedPolyfill.on("rendered", resolve);
         };
         document.head.appendChild(script);
       } else {
-        // Re-render with existing Paged.js
         window.PagedPolyfill.preview().then(resolve);
       }
     });
