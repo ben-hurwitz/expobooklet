@@ -130,23 +130,29 @@
     }
 
     #welcome-page {
-      /* Assign this element to the zero-margin named page */
       page: cover;
-
-      /* Fill the full letter sheet */
       width: 8.5in;
       height: 11in;
-
-      /* Your Illustrator cover image */
       background-image: url('welcomepage_2@4x.png');
       background-size: 8.5in 11in;
       background-repeat: no-repeat;
       background-position: top left;
-
-      /* Force a page break after so exhibits start on page 2 */
       break-after: always;
       page-break-after: always;
+      -webkit-print-color-adjust: exact !important;
+              print-color-adjust: exact !important;
+    }
 
+    #chair-page {
+      page: cover;
+      width: 8.5in;
+      height: 11in;
+      background-image: url('chairpage@4x.png');
+      background-size: 8.5in 11in;
+      background-repeat: no-repeat;
+      background-position: top left;
+      break-after: always;
+      page-break-after: always;
       -webkit-print-color-adjust: exact !important;
               print-color-adjust: exact !important;
     }
@@ -377,6 +383,7 @@
 <body>
   <div id="cover-page"></div>
   <div id="welcome-page"></div>
+  <div id="chair-page"></div>
   <div id="controls">
     <button id="btn-refresh" onclick="loadData()">↻ Refresh Data</button>
     <button id="btn-print" onclick="window.print()" disabled>🖨 Print / Save PDF</button>
