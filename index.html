@@ -157,6 +157,20 @@
               print-color-adjust: exact !important;
     }
 
+    #committee-page {
+      page: cover;
+      width: 8.5in;
+      height: 11in;
+      background-image: url('committeepage@4x.png');
+      background-size: 8.5in 11in;
+      background-repeat: no-repeat;
+      background-position: top left;
+      break-after: always;
+      page-break-after: always;
+      -webkit-print-color-adjust: exact !important;
+              print-color-adjust: exact !important;
+    }
+
     /* ============================================================
        SECTION HEADER
     ============================================================ */
@@ -384,6 +398,7 @@
   <div id="cover-page"></div>
   <div id="welcome-page"></div>
   <div id="chair-page"></div>
+  <div id="committee-page"></div>
   <div id="controls">
     <button id="btn-refresh" onclick="loadData()">↻ Refresh Data</button>
     <button id="btn-print" onclick="window.print()" disabled>🖨 Print / Save PDF</button>
