@@ -161,7 +161,7 @@
       page: cover;
       width: 8.5in;
       height: 11in;
-      background-image: url('committeepage@4x.png');
+      background-image: url('committeepage2@4x.png');
       background-size: 8.5in 11in;
       background-repeat: no-repeat;
       background-position: top left;
@@ -252,6 +252,17 @@
       min-height: 22pt;
       margin-left: 4px;
     }
+
+    .org-acronym {
+      font-family: "argent-pixel-cf", sans-serif;
+      font-style: italic;
+      font-weight: 900;
+      font-size: 14pt;
+      -webkit-text-stroke: 0.5px white;
+      text-stroke: 0.1px white;
+      /* add any other styling here */
+    }
+    
 
     .org-title {
       font-family: "argent-pixel-cf", sans-serif;
@@ -505,7 +516,19 @@
         lastLoc = r.loc;
       }
 
-      const bottom = (r.warn || r.award) ? `
+      const isPegasus = r.title === "Pegasus-III" || r.org.includes("Pegasus-III");
+      const pegasusNote = isPegasus
+        ? `<div class="location">
+                <div class="loc-tri loc-tri-dark"></div>
+                <div class="loc-tri loc-tri-white"></div>
+                <div class="location-inner">
+                  <div class="warn-icon"></div>
+                  <div class="location-text">This exhibit runs every 30 minutes beginning at 9am.</div>
+                </div>
+              </div>`
+        : "";
+
+      const bottom = (r.warn || r.award || isPegasus) ? `
         <div class="card-bottom">
           ${r.warn  ? `<div class="location">
                 <div class="loc-tri loc-tri-dark"></div>
@@ -523,6 +546,7 @@
                   <div class="location-text">${esc(r.award)}</div>
                 </div>
               </div>` : ""}
+          ${pegasusNote}
         </div>` : "";
 
       const descClass = r.desc.includes("attention needed") ? "exhibit-info missing" : "exhibit-info";
@@ -533,7 +557,7 @@
           <div class="tri tri-white"></div>
           <div class="card-content">
             <div class="card-top">
-              <div class="org-title">${esc(r.org)}</div>
+              <div class="org-title">${r.org}</div>
               <div class="location">
                 <div class="loc-tri loc-tri-dark"></div>
                 <div class="loc-tri loc-tri-white"></div>
@@ -579,16 +603,30 @@
       // Build description lookup
       const dKey = Object.keys(exhibitsRaw[0]||{}).find(k => k.includes("Exhibit Title"));
       const dVal = Object.keys(exhibitsRaw[0]||{}).find(k => k.includes("Exhibit Description"));
-      const descMap = {};
-      exhibitsRaw.forEach(r => { if (dKey && r[dKey]) descMap[r[dKey].trim()] = (r[dVal]||"").trim(); });
-
+      const dAcr = Object.keys(exhibitsRaw[0]||{}).find(k => k.includes("Acronym"));
+      const descMap = {}, acrMap = {};
+      exhibitsRaw.forEach(r => {
+        if (dKey && r[dKey]) {
+          const key = r[dKey].trim();
+          descMap[key] = (r[dVal]||"").trim();
+          acrMap[key]  = (dAcr ? r[dAcr] || "" : "").trim();
+        }
+      });
+      
       const awardCol = roomsRaw[0]
         ? ("Award" in roomsRaw[0] ? "Award" : Object.keys(roomsRaw[0]).find(k=>k.includes("Award Recipient"))||"Award")
         : "Award";
 
       let rows = roomsRaw.map(r => ({
         title: (r["Exhibit Title"]||"").trim(),
-        org:   (r["Organization"]||"").trim(),
+        org: (() => {
+          const t = (r["Exhibit Title"]||"").trim();
+          const o = (r["Organization"]||"").trim();
+          const a = (acrMap[t]||"").trim();
+          return (a && a.length < o.length && a.toLowerCase() !== o.toLowerCase())
+            ? `<span class="org-acronym">${a}</span> - ${o}`
+            : o;
+        })(),
         loc:   makeLocation(r["Building"], r["Room #"]),
         warn:  makeDayWarning(r["Friday"], r["Saturday"]),
         award: makeAward(r[awardCol]),
