@@ -34,6 +34,7 @@
     @page {
       size: letter portrait;
       margin: .8in;
+      margin-top:  2in;
     }
 
     /* Cover page — zero margins so the image fills edge-to-edge */
@@ -133,7 +134,7 @@
       page: cover;
       width: 8.5in;
       height: 11in;
-      background-image: url('welcomepage_2@4x.png');
+      background-image: url('finalwelcome@4x.png');
       background-size: 8.5in 11in;
       background-repeat: no-repeat;
       background-position: top left;
@@ -147,7 +148,7 @@
       page: cover;
       width: 8.5in;
       height: 11in;
-      background-image: url('chairpage@4x.png');
+      background-image: url('chair2@4x.png');
       background-size: 8.5in 11in;
       background-repeat: no-repeat;
       background-position: top left;
@@ -161,7 +162,7 @@
       page: cover;
       width: 8.5in;
       height: 11in;
-      background-image: url('committeepage3@4x.png');
+      background-image: url('committee3@4x.png');
       background-size: 8.5in 11in;
       background-repeat: no-repeat;
       background-position: top left;
@@ -176,6 +177,78 @@
       width: 8.5in;
       height: 11in;
       background-image: url('sponsorpage@4x.png');
+      background-size: 8.5in 11in;
+      background-repeat: no-repeat;
+      background-position: top left;
+      break-after: always;
+      page-break-after: always;
+      -webkit-print-color-adjust: exact !important;
+              print-color-adjust: exact !important;
+    }
+
+    #sponsor-page4, #sponsor-page5, #sponsor-page6, #sponsor-page7, #sponsor-page8  {
+      page: cover;
+      width: 8.5in;
+      height: 11in;
+      background-image: url('zss1@4x.png');
+      background-size: 8.5in 11in;
+      background-repeat: no-repeat;
+      background-position: top left;
+      break-after: always;
+      page-break-after: always;
+      -webkit-print-color-adjust: exact !important;
+              print-color-adjust: exact !important;
+    }
+
+    #sponsor-page5 {
+      background-image: url('zss2@4x.png');
+    }
+
+    #sponsor-page6 {
+      background-image: url('zss3@4x.png');
+    }
+
+    #sponsor-page7 {
+      background-image: url('zss4@4x.png');
+    }
+
+    #sponsor-page8 {
+      background-image: url('zss5@4x.png');
+    }
+
+    #activities1  {
+      page: cover;
+      width: 8.5in;
+      height: 11in;
+      background-image: url('finalact1@4x.png');
+      background-size: 8.5in 11in;
+      background-repeat: no-repeat;
+      background-position: top left;
+      break-after: always;
+      page-break-after: always;
+      -webkit-print-color-adjust: exact !important;
+              print-color-adjust: exact !important;
+    }
+
+    #activities2  {
+      page: cover;
+      width: 8.5in;
+      height: 11in;
+      background-image: url('finalact2@4x.png');
+      background-size: 8.5in 11in;
+      background-repeat: no-repeat;
+      background-position: top left;
+      break-after: always;
+      page-break-after: always;
+      -webkit-print-color-adjust: exact !important;
+              print-color-adjust: exact !important;
+    }
+
+    #speaker-page  {
+      page: cover;
+      width: 8.5in;
+      height: 11in;
+      background-image: url('finalspeakers@4x.png');
       background-size: 8.5in 11in;
       background-repeat: no-repeat;
       background-position: top left;
@@ -202,6 +275,7 @@
       break-after: avoid;
       page-break-after: avoid;
     }
+
 
     /* ============================================================
        EXHIBIT CARD
@@ -405,7 +479,7 @@
        (cover page uses its own named @page with no background)
     ============================================================ */
     .pagedjs_page {
-      background-image: url('bookletbg2@4x.png') !important;
+      background-image: url('studexhibit_1@4x.png') !important;
       background-size: 8.5in 11in !important;
       background-repeat: no-repeat !important;
       background-position: top left !important;
@@ -416,6 +490,35 @@
     .pagedjs_page:first-of-type {
       background-image: none !important;
     }
+
+    /* ============================================================
+   FIXED PAGE NUMBERING FOR PAGED.JS
+============================================================ */
+
+/* 2. Define the margin box for the EXHIBIT pages */
+@page {
+  /* Ensure there is enough margin at the bottom to see the number */
+
+  @bottom-right {
+    content: counter(page);
+    font-family: "argent-pixel-cf", sans-serif;
+    font-size: 14pt; /* Slightly larger to ensure visibility */
+    font-weight: 900;
+    color: var(--dark);
+    transform: translateX(695px);
+    padding-bottom: 18pt;
+    vertical-align: bottom;
+    text-align: right;
+  }
+}
+
+/* 3. Explicitly HIDE the number on your Illustrator image pages */
+@page cover {
+  margin: 0; /* Keeps your full-bleed images edge-to-edge */
+  @bottom-right {
+    content: none !important;
+  }
+}
   </style>
 </head>
 
@@ -425,6 +528,14 @@
   <div id="chair-page"></div>
   <div id="committee-page"></div>
   <div id="sponsor-page"></div>
+  <div id="sponsor-page4"></div>
+  <div id="sponsor-page5"></div>
+  <div id="sponsor-page6"></div>
+  <div id="sponsor-page7"></div>
+  <div id="sponsor-page8"></div>
+  <div id="speaker-page"></div>
+  <div id="activities1"></div>
+  <div id="activities2"></div>
   <div id="controls">
     <button id="btn-refresh" onclick="loadData()">↻ Refresh Data</button>
     <button id="btn-print" onclick="window.print()" disabled>🖨 Print / Save PDF</button>
@@ -453,7 +564,7 @@
     "E-Hall | Lobby", "E-Hall | Floor 1", "E-Hall | Floor 2",
     "ME | Lobby", "ME | Floor 1", "ME | Floor 2", "ECB | Atrium",
   ];
-  const EXCLUDE_KW = ["lunch","sponsor","speakers","storage","changing room","activities","first aid","welcome table"];
+  const EXCLUDE_KW = ["lunch","sponsor","speakers","storage","changing room","activities","first aid","welcome table","EXPO Exhibities", "expo exhibites,", "exhibities", "tt xi", "asabe", "wesc"];
 
   /* ============================================================
      DATA HELPERS
@@ -659,20 +770,34 @@
   }
 
   function runPagedJS() {
-    return new Promise((resolve) => {
-      if (!pagedLoaded) {
-        const script = document.createElement("script");
-        script.src = "https://unpkg.com/pagedjs/dist/paged.polyfill.js";
-        script.onload = () => {
-          pagedLoaded = true;
-          window.PagedPolyfill.on("rendered", resolve);
-        };
-        document.head.appendChild(script);
-      } else {
-        window.PagedPolyfill.preview().then(resolve);
-      }
-    });
-  }
+  return new Promise((resolve) => {
+    if (!pagedLoaded) {
+      const script = document.createElement("script");
+      script.src = "https://unpkg.com/pagedjs/dist/paged.polyfill.js";
+      script.onload = () => {
+        pagedLoaded = true;
+        window.PagedPolyfill.on("rendered", () => {
+          const exhibitPages = document.querySelectorAll(".pagedjs_page:not(.pagedjs_cover_page)");
+          exhibitPages.forEach((page, i) => {
+            const numEl = page.querySelector(".pagedjs_margin-bottom-right");
+            if (numEl) numEl.textContent = i + 12; // change 1 to your desired start number
+          });
+          resolve();
+        });
+      };
+      document.head.appendChild(script);
+    } else {
+      window.PagedPolyfill.preview().then(() => {
+        const exhibitPages = document.querySelectorAll(".pagedjs_page:not(.pagedjs_cover_page)");
+        exhibitPages.forEach((page, i) => {
+          const numEl = page.querySelector(".pagedjs_margin-bottom-right");
+          if (numEl) numEl.textContent = i + 12;
+        });
+        resolve();
+      });
+    }
+  });
+}
 
   function setStatus(msg) { document.getElementById("status").textContent = msg; }
 
